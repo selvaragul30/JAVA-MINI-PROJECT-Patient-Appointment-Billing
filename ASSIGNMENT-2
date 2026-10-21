@@ -1,0 +1,843 @@
+NAME: SELVA RAGUL K
+REG NO: 717825Y148
+
+Problem Statement: Build a Java console app to manage patients, doctors, appointments,
+consultations, and billing.
+
+JAVA SOURCE CODE:
+
+Patient.java:
+public class Patient {
+    private int id;
+    private String name;
+    private int age;
+    private String phone;
+
+    public Patient(int id, String name, int age, String phone) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.phone = phone;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    @Override
+    public String toString() {
+        return "Patient ID: " + id
+                + ", Name: " + name
+                + ", Age: " + age
+                + ", Phone: " + phone;
+    }
+}
+
+Doctor.java
+public class Doctor {
+    private int id;
+    private String name;
+    private String specialization;
+    private double consultationFee;
+
+    public Doctor(int id, String name, String specialization,
+                  double consultationFee) {
+        this.id = id;
+        this.name = name;
+        this.specialization = specialization;
+        this.consultationFee = consultationFee;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSpecialization() {
+        return specialization;
+    }
+
+    public double getConsultationFee() {
+        return consultationFee;
+    }
+
+    @Override
+    public String toString() {
+        return "Doctor ID: " + id
+                + ", Name: Dr. " + name
+                + ", Specialization: " + specialization
+                + ", Fee: Rs. " + consultationFee;
+    }
+}
+
+Appointment.java
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class Appointment {
+    private int id;
+    private Patient patient;
+    private Doctor doctor;
+    private LocalDateTime dateTime;
+    private boolean completed;
+
+    public Appointment(int id, Patient patient, Doctor doctor,
+                       LocalDateTime dateTime) {
+        this.id = id;
+        this.patient = patient;
+        this.doctor = doctor;
+        this.dateTime = dateTime;
+        this.completed = false;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public void display() {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+        System.out.println("Appointment ID: " + id
+                + " | Patient: " + patient.getName()
+                + " | Doctor: Dr. " + doctor.getName()
+                + " | Date: " + dateTime.format(formatter)
+                + " | Status: "
+                + (completed ? "Completed" : "Scheduled"));
+    }
+}
+
+Prescription.java
+public class Prescription {
+    private String itemName;
+    private int quantity;
+    private double unitPrice;
+
+    public Prescription(String itemName, int quantity,
+                        double unitPrice) {
+        this.itemName = itemName;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public double getTotal() {
+        return quantity * unitPrice;
+    }
+
+    @Override
+    public String toString() {
+        return itemName + " x " + quantity
+                + " = Rs. " + String.format("%.2f", getTotal());
+    }
+}
+
+Consultation.java
+import java.util.ArrayList;
+import java.util.List;
+
+public class Consultation {
+    private int id;
+    private Appointment appointment;
+    private String diagnosis;
+    private List<Prescription> prescriptions;
+
+    public Consultation(int id, Appointment appointment,
+                        String diagnosis) {
+        this.id = id;
+        this.appointment = appointment;
+        this.diagnosis = diagnosis;
+        this.prescriptions = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
+
+    public String getDiagnosis() {
+        return diagnosis;
+    }
+
+    public List<Prescription> getPrescriptions() {
+        return prescriptions;
+    }
+
+    public void addPrescription(Prescription prescription) {
+        prescriptions.add(prescription);
+    }
+
+    public double getPrescriptionTotal() {
+        double total = 0;
+
+        for (Prescription p : prescriptions) {
+            total += p.getTotal();
+        }
+
+        return total;
+    }
+
+    public void display() {
+        System.out.println("\n--- CONSULTATION SUMMARY ---");
+        System.out.println("Consultation ID: " + id);
+        System.out.println("Patient: "
+                + appointment.getPatient().getName());
+        System.out.println("Doctor: Dr. "
+                + appointment.getDoctor().getName());
+        System.out.println("Diagnosis: " + diagnosis);
+        System.out.println("Prescriptions:");
+
+        if (prescriptions.isEmpty()) {
+            System.out.println("No prescriptions.");
+        }
+
+        for (Prescription p : prescriptions) {
+            System.out.println(p);
+        }
+    }
+}
+
+Invoice.java
+public class Invoice {
+    private int id;
+    private Consultation consultation;
+    private double consultationFee;
+    private double prescriptionTotal;
+    private double tax;
+    private double total;
+    private double amountPaid;
+    private boolean closed;
+
+    public Invoice(int id, Consultation consultation) {
+        this.id = id;
+        this.consultation = consultation;
+
+        this.consultationFee = consultation.getAppointment()
+                .getDoctor().getConsultationFee();
+
+        this.prescriptionTotal = consultation.getPrescriptionTotal();
+
+        // Example tax rate: 5%
+        this.tax = (consultationFee + prescriptionTotal) * 0.05;
+
+        this.total = consultationFee + prescriptionTotal + tax;
+        this.amountPaid = 0;
+        this.closed = false;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Consultation getConsultation() {
+        return consultation;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public double getAmountPaid() {
+        return amountPaid;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public double getOutstanding() {
+        return Math.max(0, total - amountPaid);
+    }
+
+    public void addPayment(double amount) {
+        if (closed) {
+            throw new IllegalStateException("Invoice is already closed.");
+        }
+
+        if (amount <= 0 || amount > getOutstanding()) {
+            throw new IllegalArgumentException(
+                    "Payment must be positive and cannot exceed the due.");
+        }
+
+        amountPaid += amount;
+
+        if (getOutstanding() < 0.005) {
+            amountPaid = total;
+            closed = true;
+        }
+    }
+
+    public void display() {
+        System.out.println("\n========== INVOICE ==========");
+        System.out.println("Invoice ID: " + id);
+        System.out.println("Patient: "
+                + consultation.getAppointment()
+                .getPatient().getName());
+
+        System.out.printf("Consultation Fee: Rs. %.2f%n",
+                consultationFee);
+        System.out.printf("Prescription Total: Rs. %.2f%n",
+                prescriptionTotal);
+        System.out.printf("Tax (5%%): Rs. %.2f%n", tax);
+        System.out.printf("Total: Rs. %.2f%n", total);
+        System.out.printf("Paid: Rs. %.2f%n", amountPaid);
+        System.out.printf("Outstanding: Rs. %.2f%n",
+                getOutstanding());
+
+        System.out.println("Status: " + (closed ? "CLOSED" : "OPEN"));
+        System.out.println("=============================");
+    }
+}
+
+Payment.java
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class Payment {
+    private int id;
+    private Invoice invoice;
+    private double amount;
+    private String method;
+    private LocalDateTime paymentTime;
+
+    public Payment(int id, Invoice invoice,
+                   double amount, String method) {
+        if (invoice == null) {
+            throw new IllegalArgumentException("Invoice is required.");
+        }
+
+        invoice.addPayment(amount);
+
+        this.id = id;
+        this.invoice = invoice;
+        this.amount = amount;
+        this.method = method;
+        this.paymentTime = LocalDateTime.now();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Invoice getInvoice() {
+        return invoice;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void printReceipt() {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+        System.out.println("\n======= PAYMENT RECEIPT =======");
+        System.out.println("Payment ID: " + id);
+        System.out.println("Invoice ID: " + invoice.getId());
+        System.out.println("Patient: "
+                + invoice.getConsultation().getAppointment()
+                .getPatient().getName());
+
+        System.out.printf("Amount Paid: Rs. %.2f%n", amount);
+        System.out.println("Payment Method: " + method);
+        System.out.println("Date: " + paymentTime.format(formatter));
+        System.out.println("Invoice Status: "
+                + (invoice.isClosed() ? "CLOSED" : "OPEN"));
+        System.out.printf("Remaining Due: Rs. %.2f%n",
+                invoice.getOutstanding());
+        System.out.println("===============================");
+    }
+}
+
+HospitalManagementSystem.java
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class HospitalManagementSystem {
+    private static final Scanner sc = new Scanner(System.in);
+
+    private static final List<Patient> patients = new ArrayList<>();
+    private static final List<Doctor> doctors = new ArrayList<>();
+    private static final List<Appointment> appointments = new ArrayList<>();
+    private static final List<Consultation> consultations = new ArrayList<>();
+    private static final List<Invoice> invoices = new ArrayList<>();
+    private static final List<Payment> payments = new ArrayList<>();
+
+    private static int patientCounter = 1;
+    private static int doctorCounter = 1;
+    private static int appointmentCounter = 1;
+    private static int consultationCounter = 1;
+    private static int invoiceCounter = 1;
+    private static int paymentCounter = 1;
+
+    private static String readText(String message) {
+        while (true) {
+            System.out.print(message);
+            String value = sc.nextLine().trim();
+
+            if (!value.isEmpty()) {
+                return value;
+            }
+
+            System.out.println("Input cannot be empty.");
+        }
+    }
+
+    private static int readInt(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                return Integer.parseInt(sc.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Enter a valid integer.");
+            }
+        }
+    }
+
+    private static double readAmount(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                double value = Double.parseDouble(sc.nextLine().trim());
+
+                if (Double.isFinite(value) && value >= 0) {
+                    return value;
+                }
+            } catch (NumberFormatException e) {
+                // Invalid amount; prompt again.
+            }
+
+            System.out.println("Enter a valid non-negative amount.");
+        }
+    }
+
+    private static Patient findPatient(int id) {
+        for (Patient p : patients) {
+            if (p.getId() == id) return p;
+        }
+        return null;
+    }
+
+    private static Doctor findDoctor(int id) {
+        for (Doctor d : doctors) {
+            if (d.getId() == id) return d;
+        }
+        return null;
+    }
+
+    private static Appointment findAppointment(int id) {
+        for (Appointment a : appointments) {
+            if (a.getId() == id) return a;
+        }
+        return null;
+    }
+
+    private static Consultation findConsultation(int id) {
+        for (Consultation c : consultations) {
+            if (c.getId() == id) return c;
+        }
+        return null;
+    }
+
+    private static Invoice findInvoice(int id) {
+        for (Invoice i : invoices) {
+            if (i.getId() == id) return i;
+        }
+        return null;
+    }
+
+    private static void addPatient() {
+        String name = readText("Patient name: ");
+
+        int age;
+        do {
+            age = readInt("Age: ");
+            if (age < 0 || age > 130) {
+                System.out.println("Enter age from 0 to 130.");
+            }
+        } while (age < 0 || age > 130);
+
+        String phone = readText("Phone: ");
+
+        Patient p = new Patient(patientCounter++, name, age, phone);
+        patients.add(p);
+
+        System.out.println("Patient added successfully. ID: " + p.getId());
+    }
+
+    private static void addDoctor() {
+        String name = readText("Doctor name: ");
+        String specialization = readText("Specialization: ");
+        double fee = readAmount("Consultation fee: ");
+
+        Doctor d = new Doctor(doctorCounter++, name, specialization, fee);
+        doctors.add(d);
+
+        System.out.println("Doctor added successfully. ID: " + d.getId());
+    }
+
+    private static void scheduleAppointment() {
+        if (patients.isEmpty() || doctors.isEmpty()) {
+            System.out.println("Add a patient and doctor first.");
+            return;
+        }
+
+        System.out.println("\n--- Patients ---");
+        for (Patient p : patients) {
+            System.out.println(p);
+        }
+
+        Patient patient = findPatient(readInt("Patient ID: "));
+        if (patient == null) {
+            System.out.println("Patient not found.");
+            return;
+        }
+
+        System.out.println("\n--- Doctors ---");
+        for (Doctor d : doctors) {
+            System.out.println(d);
+        }
+
+        Doctor doctor = findDoctor(readInt("Doctor ID: "));
+        if (doctor == null) {
+            System.out.println("Doctor not found.");
+            return;
+        }
+
+        LocalDateTime dateTime;
+        try {
+            System.out.print("Date and time (yyyy-MM-dd HH:mm): ");
+            dateTime = LocalDateTime.parse(
+                    sc.nextLine().trim(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        } catch (Exception e) {
+            System.out.println("Invalid date/time format.");
+            return;
+        }
+
+        if (!dateTime.isAfter(LocalDateTime.now())) {
+            System.out.println("Appointment must be in the future.");
+            return;
+        }
+
+        // Prevent overlapping 30-minute slots for the same doctor.
+        LocalDateTime endTime = dateTime.plusMinutes(30);
+
+        for (Appointment existing : appointments) {
+            LocalDateTime existingEnd =
+                    existing.getDateTime().plusMinutes(30);
+
+            boolean overlaps =
+                    dateTime.isBefore(existingEnd)
+                    && existing.getDateTime().isBefore(endTime);
+
+            if (existing.getDoctor().getId() == doctor.getId()
+                    && overlaps) {
+                System.out.println("Doctor's slot is unavailable.");
+                return;
+            }
+        }
+
+        Appointment a = new Appointment(
+                appointmentCounter++, patient, doctor, dateTime);
+
+        appointments.add(a);
+        System.out.println("\nAppointment confirmed!");
+        a.display();
+    }
+
+    private static void recordConsultation() {
+        System.out.println("\n--- Appointments ---");
+        for (Appointment a : appointments) {
+            a.display();
+        }
+
+        Appointment appointment =
+                findAppointment(readInt("Appointment ID: "));
+
+        if (appointment == null) {
+            System.out.println("Appointment not found.");
+            return;
+        }
+
+        if (appointment.isCompleted()) {
+            System.out.println("Consultation already recorded.");
+            return;
+        }
+
+        if (appointment.getDateTime().isAfter(LocalDateTime.now())) {
+            System.out.println("Cannot record consultation before "
+                    + "the appointment time.");
+            return;
+        }
+
+        String diagnosis = readText("Diagnosis: ");
+
+        Consultation consultation = new Consultation(
+                consultationCounter++, appointment, diagnosis);
+
+        while (true) {
+            String answer = readText("Add prescription? (yes/no): ");
+
+            if (answer.equalsIgnoreCase("no")) {
+                break;
+            }
+
+            if (!answer.equalsIgnoreCase("yes")) {
+                System.out.println("Enter yes or no.");
+                continue;
+            }
+
+            String item = readText("Prescription item: ");
+
+            int quantity;
+            do {
+                quantity = readInt("Quantity: ");
+                if (quantity <= 0) {
+                    System.out.println("Quantity must be positive.");
+                }
+            } while (quantity <= 0);
+
+            double price = readAmount("Unit price: ");
+
+            consultation.addPrescription(
+                    new Prescription(item, quantity, price));
+        }
+
+        appointment.setCompleted(true);
+        consultations.add(consultation);
+        consultation.display();
+    }
+
+    private static void generateInvoice() {
+        if (consultations.isEmpty()) {
+            System.out.println("No consultations available.");
+            return;
+        }
+
+        for (Consultation c : consultations) {
+            System.out.println("Consultation ID: " + c.getId()
+                    + " | Patient: "
+                    + c.getAppointment().getPatient().getName());
+        }
+
+        Consultation consultation =
+                findConsultation(readInt("Consultation ID: "));
+
+        if (consultation == null) {
+            System.out.println("Consultation not found.");
+            return;
+        }
+
+        for (Invoice existing : invoices) {
+            if (existing.getConsultation().getId()
+                    == consultation.getId()) {
+                System.out.println("Invoice already exists.");
+                existing.display();
+                return;
+            }
+        }
+
+        Invoice invoice = new Invoice(invoiceCounter++, consultation);
+        invoices.add(invoice);
+        invoice.display();
+    }
+
+    private static void recordPayment() {
+        if (invoices.isEmpty()) {
+            System.out.println("No invoices available.");
+            return;
+        }
+
+        for (Invoice invoice : invoices) {
+            invoice.display();
+        }
+
+        Invoice invoice = findInvoice(readInt("Invoice ID: "));
+
+        if (invoice == null) {
+            System.out.println("Invoice not found.");
+            return;
+        }
+
+        if (invoice.isClosed()) {
+            System.out.println("Invoice is already closed.");
+            return;
+        }
+
+        double due = invoice.getOutstanding();
+        System.out.printf("Outstanding: Rs. %.2f%n", due);
+
+        double amount;
+        do {
+            amount = readAmount("Payment amount: ");
+
+            if (amount <= 0 || amount > invoice.getOutstanding()) {
+                System.out.println("Payment must be greater than zero "
+                        + "and cannot exceed the outstanding balance.");
+            }
+        } while (amount <= 0 || amount > invoice.getOutstanding());
+
+        String method = readText("Payment method (Cash/Card/UPI): ");
+
+        try {
+            Payment payment = new Payment(
+                    paymentCounter++, invoice, amount, method);
+
+            payments.add(payment);
+            payment.printReceipt();
+        } catch (IllegalArgumentException
+                 | IllegalStateException e) {
+            System.out.println("Payment failed: " + e.getMessage());
+        }
+    }
+
+    private static void listAppointments() {
+        System.out.println("\n--- APPOINTMENT LIST ---");
+
+        if (appointments.isEmpty()) {
+            System.out.println("No appointments found.");
+            return;
+        }
+
+        for (Appointment a : appointments) {
+            a.display();
+        }
+    }
+
+    private static void outstandingDuesReport() {
+        double totalDue = 0;
+
+        System.out.println("\n--- OUTSTANDING DUES REPORT ---");
+
+        for (Invoice invoice : invoices) {
+            if (!invoice.isClosed() && invoice.getOutstanding() > 0) {
+                System.out.printf(
+                        "Invoice ID: %d | Patient: %s | Due: Rs. %.2f%n",
+                        invoice.getId(),
+                        invoice.getConsultation().getAppointment()
+                                .getPatient().getName(),
+                        invoice.getOutstanding());
+
+                totalDue += invoice.getOutstanding();
+            }
+        }
+
+        System.out.printf("Total outstanding dues: Rs. %.2f%n", totalDue);
+    }
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n===== PATIENT APPOINTMENT & BILLING =====");
+            System.out.println("1. Add Patient");
+            System.out.println("2. Add Doctor");
+            System.out.println("3. Schedule Appointment");
+            System.out.println("4. Record Consultation");
+            System.out.println("5. Generate Invoice");
+            System.out.println("6. Record Payment");
+            System.out.println("7. List Appointments");
+            System.out.println("8. Outstanding Dues Report");
+            System.out.println("9. Exit");
+
+            int choice = readInt("Enter choice: ");
+            switch (choice) {
+                
+                case 1:
+                    addPatient();
+                    break;
+                case 2:
+                    addDoctor();
+                    break;
+                case 3:
+                    scheduleAppointment();
+                    break;
+                case 4:
+                    recordConsultation();
+                    break;
+                case 5:
+                    generateInvoice();
+                    break;
+                case 6:
+                    recordPayment();
+                    break;
+                case 7:
+                    listAppointments();
+                    break;
+                case 8:
+                    outstandingDuesReport();
+                    break;
+                case 9:
+                    System.out.println("Exiting application. Goodbye!");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        }
+    }
+}
+
+HOW TO RUN/COMPILE:
+Open Eclipse → File → New → Java Project.
+Enter project name: HospitalManagementSystem → click Finish.
+Right-click src → New → Class.
+Create 8 separate Java files: Patient, Doctor, Appointment, Prescription, Consultation, Invoice, Payment, HospitalManagementSystem.
+Copy the corresponding code from your uploaded file into each Java file and press Ctrl + S.
+Open HospitalManagementSystem.java → right-click → Run As → Java Application.
+Enter your choices in the Console and press Enter.
